@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Embeddings Demos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            padding: 40px 0; 
+            background-color: #f8f9fa;
+        }
+        .demo-card {
+            transition: transform 0.3s;
+            height: 100%;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .demo-card:hover {
+            transform: translateY(-5px);
+        }
+        .card-header {
+            font-weight: bold;
+            background-color: #fff;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .card-img-top {
+            height: 200px;
+            object-fit: cover;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border: none;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+        }
+        h1 {
+            margin-bottom: 1.5rem;
+            color: #212529;
+        }
+        .header-container {
+            margin-bottom: 40px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-container">
+            <h1>Embedding Demonstrations</h1>
+            <p class="lead">Explore different embedding techniques for document representation and search</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card demo-card">
+                    <img src="/static/images/sparse_vectors_visualization.png" class="card-img-top" alt="Simple Sparse Embeddings">
+                    <div class="card-header">
+                        Simple Sparse Embeddings
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Learn about traditional sparse embeddings using techniques like Bag-of-Words and TF-IDF.
+                            These simple but effective methods represent documents as sparse vectors where each dimension
+                            corresponds to a term in the vocabulary.
+                        </p>
+                        <ul>
+                            <li>Bag-of-Words representation</li>
+                            <li>TF-IDF weighting</li>
+                            <li>Sparse vector operations</li>
+                            <li>Basic document search</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <a href="/simple" class="btn btn-primary w-100">Explore Demo</a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6 mb-4">
+                <div class="card demo-card">
+                    <img src="/static/images/neural_sparse_vectors.png" class="card-img-top" alt="Neural Sparse Embeddings">
+                    <div class="card-header">
+                        Neural Sparse Embeddings (SPLADE)
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            Discover neural sparse embeddings inspired by the SPLADE model. These advanced techniques combine
+                            the interpretability of sparse vectors with the semantic richness of neural networks.
+                        </p>
+                        <ul>
+                            <li>Neural term expansion</li>
+                            <li>Contextual understanding</li>
+                            <li>Semantic search capabilities</li>
+                            <li>Comparison with traditional approaches</li>
+                        </ul>
+                    </div>
+                    <div class="card-footer bg-white">
+                        <a href="/splade" class="btn btn-primary w-100">Explore Demo</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

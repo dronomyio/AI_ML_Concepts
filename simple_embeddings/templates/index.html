@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sparse Embeddings Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        .result-card { margin-bottom: 20px; }
+        pre { background-color: #f8f9fa; padding: 10px; border-radius: 5px; }
+        .loading { display: none; }
+        .visualization-container { text-align: center; margin: 20px 0; }
+        .document-entry { margin-bottom: 10px; }
+        #documents-container { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">Sparse Embeddings Demonstration</h1>
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h2 class="h5 mb-0">Documents</h2>
+            </div>
+            <div class="card-body">
+                <div id="documents-container">
+                    <div class="document-entry">
+                        <input type="text" class="form-control document-input" value="The quick brown fox jumps over the lazy dog">
+                    </div>
+                    <div class="document-entry">
+                        <input type="text" class="form-control document-input" value="A fox is a wild animal from the canine family">
+                    </div>
+                    <div class="document-entry">
+                        <input type="text" class="form-control document-input" value="Dogs are popular pets known for their loyalty">
+                    </div>
+                    <div class="document-entry">
+                        <input type="text" class="form-control document-input" value="The lazy cat sleeps all day long">
+                    </div>
+                    <div class="document-entry">
+                        <input type="text" class="form-control document-input" value="Brown bears and red foxes are wild animals">
+                    </div>
+                </div>
+                <button id="add-document" class="btn btn-sm btn-outline-secondary mb-3">+ Add Document</button>
+                
+                <div class="mb-3">
+                    <label for="query" class="form-label">Search Query (Optional):</label>
+                    <input type="text" class="form-control" id="query" placeholder="Enter search query..." value="wild fox">
+                </div>
+                
+                <button id="process-btn" class="btn btn-primary">Process Documents</button>
+                <div class="loading mt-3">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <span class="ms-2">Processing...</span>
+                </div>
+            </div>
+        </div>
+
+        <div id="results" style="display: none;">
+            <!-- Step 1: Creating Sparse Vectors -->
+            <div class="card result-card">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Step 1: Creating Sparse Vectors</h2>
+                </div>
+                <div class="card-body">
+                    <p><strong>Vocabulary size:</strong> <span id="vocab-size"></span></p>
+                    <p><strong>Vocabulary:</strong> <span id="vocabulary"></span></p>
+                    <p><strong>Document-Term Matrix (Sparse Representation):</strong></p>
+                    <ul>
+                        <li><strong>Shape:</strong> <span id="matrix-shape"></span> (documents × terms)</li>
+                        <li><strong>Total elements:</strong> <span id="total-elements"></span></li>
+                        <li><strong>Non-zero elements:</strong> <span id="non-zero"></span></li>
+                        <li><strong>Sparsity:</strong> <span id="sparsity"></span></li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Step 2: Visualizing Sparse Vectors -->
+            <div class="card result-card">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Step 2: Visualizing Sparse Vectors</h2>
+                </div>
+                <div class="card-body">
+                    <div class="visualization-container">
+                        <img id="visualization" class="img-fluid" alt="Sparse Vectors Visualization">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: TF-IDF Weighted Sparse Vectors -->
+            <div class="card result-card">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Step 3: Dictionary-Based Sparse Representation</h2>
+                </div>
+                <div class="card-body">
+                    <div id="sparse-dicts"></div>
+                </div>
+            </div>
+
+            <!-- Step 4: Search Results (conditional) -->
+            <div id="search-results-card" class="card result-card" style="display: none;">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Search Results</h2>
+                </div>
+                <div class="card-body">
+                    <p><strong>Query:</strong> <span id="search-query"></span></p>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Rank</th>
+                                <th>Document</th>
+                                <th>Score</th>
+                            </tr>
+                        </thead>
+                        <tbody id="search-results">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Conclusion -->
+            <div class="card result-card">
+                <div class="card-header">
+                    <h2 class="h5 mb-0">Key Points about Sparse Embeddings</h2>
+                </div>
+                <div class="card-body">
+                    <ol>
+                        <li>They are memory-efficient for high-dimensional data</li>
+                        <li>Each dimension corresponds to a specific term (interpretable)</li>
+                        <li>They can be weighted (e.g., using TF-IDF) to improve relevance</li>
+                        <li>They enable efficient search through sparse vector operations</li>
+                    </ol>
+                    <p>More advanced sparse embedding methods like SPLADE use neural networks to create more sophisticated sparse representations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const processBtn = document.getElementById('process-btn');
+            const loading = document.querySelector('.loading');
+            const results = document.getElementById('results');
+            const addDocumentBtn = document.getElementById('add-document');
+            
+            // Add document button
+            addDocumentBtn.addEventListener('click', () => {
+                const container = document.getElementById('documents-container');
+                const newDoc = document.createElement('div');
+                newDoc.className = 'document-entry';
+                newDoc.innerHTML = `
+                    <div class="input-group mb-2">
+                        <input type="text" class="form-control document-input" placeholder="Enter document text...">
+                        <button class="btn btn-outline-danger remove-doc" type="button">Remove</button>
+                    </div>
+                `;
+                container.appendChild(newDoc);
+                
+                // Add remove button functionality
+                newDoc.querySelector('.remove-doc').addEventListener('click', () => {
+                    container.removeChild(newDoc);
+                });
+            });
+            
+            // Process button
+            processBtn.addEventListener('click', async () => {
+                // Get all documents
+                const documentInputs = document.querySelectorAll('.document-input');
+                const documents = Array.from(documentInputs).map(input => input.value).filter(text => text.trim() !== '');
+                
+                // Get query
+                const query = document.getElementById('query').value;
+                
+                // Show loading
+                loading.style.display = 'flex';
+                results.style.display = 'none';
+                
+                try {
+                    const response = await fetch('/api/process', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ documents, query: query.trim() ? query : null })
+                    });
+                    
+                    const data = await response.json();
+                    displayResults(data, query);
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('An error occurred while processing the documents.');
+                } finally {
+                    loading.style.display = 'none';
+                    results.style.display = 'block';
+                }
+            });
+            
+            function displayResults(data, query) {
+                // Basic stats
+                document.getElementById('vocab-size').textContent = data.vocabulary_size;
+                document.getElementById('vocabulary').textContent = data.vocabulary.join(', ');
+                document.getElementById('matrix-shape').textContent = `(${data.documents.length}, ${data.vocabulary_size})`;
+                document.getElementById('total-elements').textContent = data.total_elements;
+                document.getElementById('non-zero').textContent = data.non_zero_elements;
+                document.getElementById('sparsity').textContent = (data.sparsity * 100).toFixed(2) + '%';
+                
+                // Visualization
+                document.getElementById('visualization').src = `data:image/png;base64,${data.visualization}`;
+                
+                // Sparse dictionaries
+                const sparseDictsContainer = document.getElementById('sparse-dicts');
+                sparseDictsContainer.innerHTML = '';
+                
+                data.sparse_dicts.forEach((dict, i) => {
+                    const docDiv = document.createElement('div');
+                    docDiv.className = 'mb-3';
+                    docDiv.innerHTML = `<p><strong>Document ${i+1} sparse vector:</strong></p>`;
+                    
+                    const dictText = Object.entries(dict)
+                        .map(([term, value]) => `'${term}': ${value.toFixed(4)}`)
+                        .join(', ');
+                    
+                    const pre = document.createElement('pre');
+                    pre.textContent = `{${dictText}}`;
+                    docDiv.appendChild(pre);
+                    sparseDictsContainer.appendChild(docDiv);
+                });
+                
+                // Search results (if query was provided)
+                const searchResultsCard = document.getElementById('search-results-card');
+                if (query && data.search_results.length > 0) {
+                    document.getElementById('search-query').textContent = query;
+                    
+                    const searchResultsContainer = document.getElementById('search-results');
+                    searchResultsContainer.innerHTML = '';
+                    
+                    data.search_results.forEach(result => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td>${result.rank}</td>
+                            <td>${result.text}</td>
+                            <td>${result.score.toFixed(4)}</td>
+                        `;
+                        searchResultsContainer.appendChild(row);
+                    });
+                    
+                    searchResultsCard.style.display = 'block';
+                } else {
+                    searchResultsCard.style.display = 'none';
+                }
+            }
+        });
+    </script>
+</body>
+</html>

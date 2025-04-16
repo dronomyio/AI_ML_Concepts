@@ -1,0 +1,8 @@
+Here are 6 embedding types and when you should use them:
+
+• Sparse embeddings: https://lnkd.in/drneK6KJ
+• Dense embeddings: https://lnkd.in/dcqqUZMT
+• Quantized embeddings: https://lnkd.in/dn8KxBUS
+• Binary embeddings: https://lnkd.in/dkX2sxXu
+• Variable dimensions: https://lnkd.in/dZ5X2p7J
+• Multi-vector embeddings: https://lnkd.in/eA4GfbKq

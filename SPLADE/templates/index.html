@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Sparse Embedding Demo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .visualization-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        .visualization-img {
+            max-width: 100%;
+            height: auto;
+        }
+        .results-container {
+            margin-top: 2rem;
+        }
+        .document-card {
+            margin-bottom: 1rem;
+        }
+        .document-score {
+            font-weight: bold;
+        }
+        .comparison-container {
+            display: flex;
+            gap: 2rem;
+        }
+        .comparison-column {
+            flex: 1;
+        }
+        #loadingIndicator {
+            display: none;
+            text-align: center;
+            margin: 2rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <h1 class="text-center mb-4">Neural Sparse Embedding Demo</h1>
+                <p class="lead text-center">
+                    This demo shows the difference between traditional sparse vectors (bag-of-words) 
+                    and neural sparse vectors (SPLADE-like) for document representation and search.
+                </p>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Documents</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            {% for doc in documents %}
+                            <li class="list-group-item">
+                                <strong>Document {{ loop.index }}:</strong> {{ doc }}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Vocabulary</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            <strong>Terms ({{ vocabulary|length }}):</strong> 
+                            {{ vocabulary|join(', ') }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Search Demo</h5>
+                    </div>
+                    <div class="card-body">
+                        <form id="searchForm">
+                            <div class="input-group mb-3">
+                                <input type="text" id="queryInput" name="query" class="form-control" 
+                                       placeholder="Enter search query (e.g., 'wild animal', 'lazy pet')" required>
+                                <button class="btn btn-primary" type="submit">Search</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="loadingIndicator">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p>Processing query and generating visualizations...</p>
+        </div>
+
+        <div id="resultsContainer" class="results-container" style="display: none;">
+            <div class="row">
+                <div class="col-12">
+                    <h3 class="text-center mb-4">Search Results for: <span id="queryText"></span></h3>
+                </div>
+            </div>
+
+            <div class="row comparison-container">
+                <div class="col-md-6 comparison-column">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5>Traditional Sparse Vector Results</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="traditionalResults"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 comparison-column">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5>SPLADE-like Neural Sparse Vector Results</h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="spladeResults"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="visualization-container">
+            <h3 class="text-center mb-3">Vector Visualization</h3>
+            <img src="data:image/png;base64,{{ visualization }}" alt="Vector Visualization" class="visualization-img" id="vectorVisualization">
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header bg-dark text-white">
+                        <h5>About Neural Sparse Embeddings (SPLADE)</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>
+                            Neural sparse embeddings, like those produced by SPLADE (SParse Lexical AnD Expansion model),
+                            combine the efficiency of traditional sparse representations with the semantic richness of 
+                            neural networks.
+                        </p>
+                        <h6>How SPLADE Works:</h6>
+                        <ol>
+                            <li>Uses neural networks (like BERT) to expand terms with related concepts</li>
+                            <li>Applies ReLU(log(1+x)) activation to maintain sparsity</li>
+                            <li>Creates interpretable vectors where each dimension corresponds to a vocabulary term</li>
+                            <li>Captures semantic relationships without requiring dense vectors</li>
+                        </ol>
+                        <h6>Key Advantages:</h6>
+                        <ul>
+                            <li>Improves search accuracy by understanding semantic relationships</li>
+                            <li>Maintains compatibility with traditional inverted index infrastructure</li>
+                            <li>Preserves the interpretability of sparse representations</li>
+                            <li>More memory-efficient than dense embeddings for many applications</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) return;
+            
+            // Show loading indicator
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('resultsContainer').style.display = 'none';
+            
+            // Submit form data
+            const formData = new FormData();
+            formData.append('query', query);
+            
+            fetch('/search', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide loading indicator
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                // Display query
+                document.getElementById('queryText').textContent = data.query;
+                
+                // Update visualization
+                document.getElementById('vectorVisualization').src = 'data:image/png;base64,' + data.visualization;
+                
+                // Display results
+                displayResults('traditionalResults', data.traditional_ranking);
+                displayResults('spladeResults', data.splade_ranking);
+                
+                // Show results container
+                document.getElementById('resultsContainer').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('loadingIndicator').style.display = 'none';
+                alert('An error occurred while processing your request');
+            });
+        });
+        
+        function displayResults(containerId, results) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            
+            if (results.length === 0) {
+                container.innerHTML = '<p class="text-muted">No results found</p>';
+                return;
+            }
+            
+            const resultsList = document.createElement('div');
+            resultsList.className = 'list-group';
+            
+            results.forEach(result => {
+                const item = document.createElement('div');
+                item.className = 'list-group-item';
+                
+                const header = document.createElement('div');
+                header.className = 'd-flex justify-content-between align-items-center';
+                
+                const rank = document.createElement('span');
+                rank.className = 'badge bg-secondary';
+                rank.textContent = '#' + result.rank;
+                
+                const score = document.createElement('span');
+                score.className = 'document-score';
+                score.textContent = 'Score: ' + result.score.toFixed(4);
+                
+                header.appendChild(rank);
+                header.appendChild(score);
+                
+                const text = document.createElement('p');
+                text.className = 'mb-1 mt-2';
+                text.textContent = result.text;
+                
+                item.appendChild(header);
+                item.appendChild(text);
+                resultsList.appendChild(item);
+            });
+            
+            container.appendChild(resultsList);
+        }
+    </script>
+</body>
+</html>
